@@ -1,0 +1,1484 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  BookOpen, 
+  Trophy, 
+  ShieldAlert, 
+  Award, 
+  Compass, 
+  HelpCircle, 
+  ArrowLeft, 
+  CheckCircle2, 
+  AlertCircle, 
+  RefreshCw, 
+  Layers, 
+  Globe, 
+  BookMarked,
+  Sparkles,
+  History,
+  Check,
+  X
+} from 'lucide-react';
+
+// Detailed UDHR Articles database categorized by René Cassin's Greek Temple Analogy
+// Fully localized in both Myanmar and English
+const UDHR_ARTICLES = [
+  {
+    id: 1,
+    section: "Foundation",
+    titleMM: "အပိုဒ် ၁ - လွတ်လပ်မှုနှင့် တန်းတူညီမျှမှု",
+    titleEN: "Article 1 - Free and Equal",
+    descMM: "လူတိုင်းသည် လွတ်လပ်စွာ မွေးဖွားလာသူများဖြစ်ပြီး ဂုဏ်သိက္ခာနှင့် အခွင့်အရေးများတွင် တန်းတူညီမျှခွင့် ရှိကြသည်။",
+    descEN: "All human beings are born free and equal in dignity and rights."
+  },
+  {
+    id: 2,
+    section: "Foundation",
+    titleMM: "အပိုဒ် ၂ - ခွဲခြားမှုမရှိစေရခွင့်",
+    titleEN: "Article 2 - Freedom from Discrimination",
+    descMM: "လူမျိုး၊ အသားအရောင်၊ ကျား/မ၊ ဘာသာစကား သို့မဟုတ် ကိုးကွယ်သည့်ဘာသာ စသည်တို့ကြောင့် ခွဲခြားဆက်ဆံခြင်း မရှိစေရ။",
+    descEN: "Everyone is entitled to all the rights and freedoms, without distinction of any kind."
+  },
+  {
+    id: 3,
+    section: "Column 1",
+    titleMM: "အပိုဒ် ၃ - အသက်ရှင်ခွင့်နှင့် လွတ်လပ်ခွင့်",
+    titleEN: "Article 3 - Right to Life",
+    descMM: "လူတိုင်းတွင် အသက်ရှင်သန်ခွင့်၊ လွတ်လပ်ခွင့်နှင့် လုံခြုံစိတ်ချခွင့်တို့ ရှိသည်။",
+    descEN: "Everyone has the right to life, liberty and security of person."
+  },
+  {
+    id: 4,
+    section: "Column 1",
+    titleMM: "အပိုဒ် ၄ - ကျွန်ပြုမှု ပိတ်ပင်ခြင်း",
+    titleEN: "Article 4 - Freedom from Slavery",
+    descMM: "မည်သူ့ကိုမျှ ကျွန်အဖြစ် သို့မဟုတ် အဓမ္မစေခိုင်းသူအဖြစ် အလုပ်မခိုင်းစေရ။",
+    descEN: "No one shall be held in slavery or servitude; slavery and the slave trade shall be prohibited."
+  },
+  {
+    id: 5,
+    section: "Column 1",
+    titleMM: "အပိုဒ် ၅ - ညှဉ်းပန်းနှိပ်စက်မှု တားမြစ်ခြင်း",
+    titleEN: "Article 5 - Freedom from Torture",
+    descMM: "မည်သူ့ကိုမျှ ရက်စက်ကြမ်းကြုတ်စွာ သို့မဟုတ် လူမဆန်စွာ ညှဉ်းပန်းနှိပ်စက်ခြင်း မပြုရ။",
+    descEN: "No one shall be subjected to torture or to cruel, inhuman or degrading treatment or punishment."
+  },
+  {
+    id: 8,
+    section: "Column 1",
+    titleMM: "အပိုဒ် ၈ - တရားရုံး၏ ကာကွယ်မှုရခွင့်",
+    titleEN: "Article 8 - Remedy by Tribunal",
+    descMM: "အခြေခံအခွင့်အရေးများ ချိုးဖောက်ခံရပါက နိုင်ငံတော်တရားရုံးတွင် ထိရောက်စွာ ကုစားခွင့် ရှိသည်။",
+    descEN: "Everyone has the right to an effective remedy by the competent national tribunals."
+  },
+  {
+    id: 9,
+    section: "Column 1",
+    titleMM: "အပိုဒ် ၉ - မတရားဖမ်းဆီးမှု တားမြစ်ခြင်း",
+    titleEN: "Article 9 - No Arbitrary Detention",
+    descMM: "မည်သူ့ကိုမျှ အကြောင်းမဲ့ ဖမ်းဆီးခြင်း၊ ချုပ်နှောင်ခြင်း သို့မဟုတ် ပြည်နှင်ဒဏ်ပေးခြင်း မပြုရ။",
+    descEN: "No one shall be subjected to arbitrary arrest, detention or exile."
+  },
+  {
+    id: 11,
+    section: "Column 1",
+    titleMM: "အပိုဒ် ၁၁ - အပြစ်မရှိသေးကြောင်း ယူဆခွင့်",
+    titleEN: "Article 11 - Innocent until Proven Guilty",
+    descMM: "အပြစ်ရှိကြောင်း ဥပဒေအရ သက်သေမပြနိုင်မချင်း လူတိုင်းကို အပြစ်မဲ့သူအဖြစ် ယူဆရမည်။",
+    descEN: "Everyone charged with a penal offence has the right to be presumed innocent until proved guilty."
+  },
+  {
+    id: 12,
+    section: "Column 2",
+    titleMM: "အပိုဒ် ၁၂ - ပုဂ္ဂိုလ်ရေး လုံခြုံခွင့်",
+    titleEN: "Article 12 - Right to Privacy",
+    descMM: "တစ်ဦးတစ်ယောက်၏ သီးသန့်နေထိုင်မှု၊ မိသားစုနှင့် နေအိမ်တွင်း ကိစ္စရပ်များကို အကြောင်းမဲ့ မစွက်ဖက်ရ။",
+    descEN: "No one shall be subjected to arbitrary interference with his privacy, family, home or correspondence."
+  },
+  {
+    id: 13,
+    section: "Column 2",
+    titleMM: "အပိုဒ် ၁၃ - လွတ်လပ်စွာ သွားလာခွင့်",
+    titleEN: "Article 13 - Freedom of Movement",
+    descMM: "မိမိနိုင်ငံအတွင်း လွတ်လပ်စွာ သွားလာခွင့်နှင့် နိုင်ငံပြင်ပသို့ ထွက်ခွာခွင့်၊ ပြန်လာခွင့် ရှိသည်။",
+    descEN: "Everyone has the right to freedom of movement and residence within the borders of each state."
+  },
+  {
+    id: 14,
+    section: "Column 2",
+    titleMM: "အပိုဒ် ၁၄ - ခိုလှုံခွင့် တောင်းခံခွင့်",
+    titleEN: "Article 14 - Right to Asylum",
+    descMM: "ညှဉ်းပန်းနှိပ်စက်မှုများမှ လွတ်မြောက်ရန် အခြားနိုင်ငံများတွင် ခိုလှုံခွင့်တောင်းခံခွင့် ရှိသည်။",
+    descEN: "Everyone has the right to seek and to enjoy in other countries asylum from persecution."
+  },
+  {
+    id: 15,
+    section: "Column 2",
+    titleMM: "အပိုဒ် ၁၅ - နိုင်ငံသားဖြစ်ခွင့်",
+    titleEN: "Article 15 - Right to a Nationality",
+    descMM: "လူတိုင်းတွင် မိမိနှစ်သက်ရာ နိုင်ငံသားဖြစ်ခွင့် ရှိပြီး နိုင်ငံသားအဖြစ်မှ မတရား စွန့်ပယ်ခြင်း မခံစေရ။",
+    descEN: "Everyone has the right to a nationality and no one shall be arbitrarily deprived of his nationality."
+  },
+  {
+    id: 17,
+    section: "Column 2",
+    titleMM: "အပိုဒ် ၁၇ - ပိုင်ဆိုင်ခွင့် အခွင့်အရေး",
+    titleEN: "Article 17 - Right to Own Property",
+    descMM: "လူတိုင်းတွင် ပစ္စည်းဥစ္စာ ပိုင်ဆိုင်ခွင့်ရှိပြီး ၎င်းကို မတရား သိမ်းယူခြင်း မခံစေရ။",
+    descEN: "Everyone has the right to own property alone as well as in association with others."
+  },
+  {
+    id: 18,
+    section: "Column 3",
+    titleMM: "အပိုဒ် ၁၈ - လွတ်လပ်စွာ ကိုးကွယ်ခွင့်",
+    titleEN: "Article 18 - Freedom of Belief & Religion",
+    descMM: "လွတ်လပ်စွာ တွေးတောကြံဆခွင့်၊ ယုံကြည်ခွင့်နှင့် မိမိနှစ်သက်ရာ ဘာသာကိုးကွယ်ခွင့် ရှိသည်။",
+    descEN: "Everyone has the right to freedom of thought, conscience and religion."
+  },
+  {
+    id: 19,
+    section: "Column 3",
+    titleMM: "အပိုဒ် ၁၉ - လွတ်လပ်စွာ ထုတ်ဖော်ခွင့်",
+    titleEN: "Article 19 - Freedom of Expression",
+    descMM: "နှောင့်ယှက်ခြင်းမခံရဘဲ လွတ်လပ်စွာ ထင်မြင်ယူဆခွင့်နှင့် တင်ပြထုတ်ဖော်ခွင့် ရှိသည်။",
+    descEN: "Everyone has the right to freedom of opinion and expression."
+  },
+  {
+    id: 20,
+    section: "Column 3",
+    titleMM: "အပိုဒ် ၂၀ - ငြိမ်းချမ်းစွာ စုဝေးခွင့်",
+    titleEN: "Article 20 - Freedom of Assembly",
+    descMM: "ငြိမ်းချမ်းစွာ စုဝေးခွင့်နှင့် အသင်းအဖွဲ့ ဖွဲ့စည်းခွင့် ရှိသည်။ မည်သူ့ကိုမျှ အသင်းဝင်ရန် အတင်းအကျပ် မလုပ်ရ။",
+    descEN: "Everyone has the right to freedom of peaceful assembly and association."
+  },
+  {
+    id: 21,
+    section: "Column 3",
+    titleMM: "အပိုဒ် ၂၁ - ဒီမိုကရေစီတွင် ပါဝင်ခွင့်",
+    titleEN: "Article 21 - Right to Democracy",
+    descMM: "မိမိနိုင်ငံ၏ အုပ်ချုပ်ရေးတွင် တိုက်ရိုက်ဖြစ်စေ၊ လွတ်လပ်သော ရွေးကောက်ပွဲမှတစ်ဆင့်ဖြစ်စေ ပါဝင်ခွင့်ရှိသည်။",
+    descEN: "Everyone has the right to take part in the government of his country, directly or through freely chosen representatives."
+  },
+  {
+    id: 22,
+    section: "Column 4",
+    titleMM: "အပိုဒ် ၂၂ - လူမှုဖူလုံရေး အခွင့်အရေး",
+    titleEN: "Article 22 - Right to Social Security",
+    descMM: "လူ့ဂုဏ်သိက္ခာနှင့်အညီ နေထိုင်နိုင်ရန် လူမှုဖူလုံရေးနှင့် စီးပွားရေး၊ လူမှုရေးအခွင့်အရေးများ ရရှိခွင့်ရှိသည်။",
+    descEN: "Everyone, as a member of society, has the right to social security."
+  },
+  {
+    id: 23,
+    section: "Column 4",
+    titleMM: "အပိုဒ် ၂၃ - လွတ်လပ်စွာ အလုပ်လုပ်ခွင့်",
+    titleEN: "Article 23 - Right to Work",
+    descMM: "မျှတသော အလုပ်လုပ်ခွင့်၊ တူညီသောအလုပ်အတွက် တူညီသောလစာရခွင့်နှင့် အလုပ်သမားသမဂ္ဂ ဖွဲ့စည်းခွင့် ရှိသည်။",
+    descEN: "Everyone has the right to work, to free choice of employment, to just and favourable conditions of work."
+  },
+  {
+    id: 26,
+    section: "Column 4",
+    titleMM: "အပိုဒ် ၂၆ - ပညာသင်ကြားခွင့် အခွင့်အရေး",
+    titleEN: "Article 26 - Right to Education",
+    descMM: "အနည်းဆုံး မူလတန်းအဆင့်တွင် ပညာကို အခမဲ့ သင်ကြားခွင့် ရှိသည်။ မူလတန်းပညာသည် မသင်မနေရ ဖြစ်သည်။",
+    descEN: "Everyone has the right to education. Education shall be free, at least in the elementary and fundamental stages."
+  },
+  {
+    id: 27,
+    section: "Column 4",
+    titleMM: "အပိုဒ် ၂၇ - ယဉ်ကျေးမှုတွင် ပါဝင်ခွင့်",
+    titleEN: "Article 27 - Right to Culture & Science",
+    descMM: "လူ့အဖွဲ့အစည်း၏ ယဉ်ကျေးမှုဘဝတွင် လွတ်လပ်စွာ ပါဝင်ခွင့်နှင့် သိပ္ပံပညာ တိုးတက်မှုများတွင် ခံစားခွင့် ရှိသည်။",
+    descEN: "Everyone has the right freely to participate in the cultural life of the community, to enjoy the arts and to share in scientific advancement."
+  },
+  {
+    id: 28,
+    section: "Pediment",
+    titleMM: "အပိုဒ် ၂၈ - စနစ်တကျ ရှိသော ကမ္ဘာ့အစီအစဉ်",
+    titleEN: "Article 28 - Social and International Order",
+    descMM: "ယခုဖော်ပြပါ အခွင့်အရေးများ အပြည့်အဝရရှိနိုင်မည့် လူမှုရေးနှင့် နိုင်ငံတကာ စနစ်တစ်ခုကို ရရှိပိုင်ခွင့်ရှိသည်။",
+    descEN: "Everyone is entitled to a social and international order in which the rights and freedoms set forth in this Declaration can be fully realized."
+  },
+  {
+    id: 29,
+    section: "Pediment",
+    titleMM: "အပိုဒ် ၂၉ - လူ့အဖွဲ့အစည်းအပေါ် တာဝန်ဝတ္တရား",
+    titleEN: "Article 29 - Duty to the Community",
+    descMM: "လူတိုင်းတွင် မိမိကိုယ်ရည်ကိုယ်သွေး လွတ်လပ်စွာ ဖွံ့ဖြိုးတိုးတက်နိုင်ရာ အရပ်ဖြစ်သော လူ့အဖွဲ့အစည်းအပေါ် တာဝန်ရှိသည်။",
+    descEN: "Everyone has duties to the community in which alone the free and full development of his personality is possible."
+  },
+  {
+    id: 30,
+    section: "Pediment",
+    titleMM: "အပိုဒ် ၃၀ - အခွင့်အရေးများကို အလွဲသုံးမစားရ",
+    titleEN: "Article 30 - Rights are Inviolable",
+    descMM: "ဤကြေညာစာတမ်းပါ အချက်တစ်ခုခုကို မည်သည့်နိုင်ငံ၊ အုပ်စု သို့မဟုတ် လူပုဂ္ဂိုလ်ကမျှ အခွင့်အရေးများကို ဖျက်ဆီးရန် အသုံးမပြုရ။",
+    descEN: "Nothing in this Declaration may be interpreted as implying for any State, group or person any right to engage in any activity to destroy any of the rights."
+  }
+];
+
+// History Trivia Quiz Data covering World War II, Four Freedoms, Paris Signing, and Eleanor Roosevelt
+const TRIVIA_QUESTIONS = [
+  {
+    id: 1,
+    questionMM: "ဒုတိယကမ္ဘာစစ်အတွင်း အမေရိကန်သမ္မတ Franklin D. Roosevelt က UDHR အတွက် အဓိကလမ်းပြဖြစ်ခဲ့တဲ့ ဘယ်လိုလွတ်လပ်မှုမျိုးတွေကို ဟောပြောခဲ့ပါသလဲ။",
+    questionEN: "During WWII, President Franklin D. Roosevelt delivered a famous speech outline which became a cornerstone for UDHR. What is it known as?",
+    options: [
+      { textMM: "လွတ်လပ်မှု ၄ ရပ် (Four Freedoms)", textEN: "Four Freedoms", isCorrect: true },
+      { textMM: "လွတ်လပ်ရေး ကြေညာစာတမ်း", textEN: "Declaration of Independence", isCorrect: false },
+      { textMM: "လူ့အခွင့်အရေး ပဋိညာဉ်", textEN: "Human Rights Charter", isCorrect: false },
+      { textMM: "ဒီမိုကရေစီ မဏ္ဍိုင် ၃ ခု", textEN: "Three Pillars of Democracy", isCorrect: false }
+    ],
+    explanationMM: "သမ္မတ Roosevelt သည် ၁၉၄၁ ခုနှစ်တွင် လွတ်လပ်စွာပြောဆိုခွင့်၊ လွတ်လပ်စွာကိုးကွယ်ခွင့်၊ လိုအပ်ချက်များမှ လွတ်ကင်းခွင့်နှင့် ကြောက်ရွံ့ခြင်းမှ လွတ်ကင်းခွင့်တည်းဟူသော 'လွတ်လပ်မှု ၄ ရပ်' ကို ဟောပြောခဲ့သည်။",
+    explanationEN: "In 1941, FDR proposed four fundamental freedoms: Freedom of speech, Freedom of worship, Freedom from want, and Freedom from fear."
+  },
+  {
+    id: 2,
+    questionMM: "UDHR မူကြမ်းရေးဆွဲရေးကော်မတီ (Drafting Committee) ရဲ့ ဥက္ကဋ္ဌအဖြစ် တာဝန်ယူပြီး 'ကမ္ဘာ့ပထမဆုံး အမျိုးသမီးကြီး' လို့ တင်စားခံရသူမှာ မည်သူနည်း။",
+    questionEN: "Who served as the Chairperson of the UDHR Drafting Committee and is highly celebrated as the 'First Lady of the World' for her effort?",
+    options: [
+      { textMM: "Eleanor Roosevelt", textEN: "Eleanor Roosevelt", isCorrect: true },
+      { textMM: "Rosa Parks", textEN: "Rosa Parks", isCorrect: false },
+      { textMM: "Marie Curie", textEN: "Marie Curie", isCorrect: false },
+      { textMM: "Margaret Thatcher", textEN: "Margaret Thatcher", isCorrect: false }
+    ],
+    explanationMM: "အမေရိကန် သမ္မတကတော်ဟောင်း Eleanor Roosevelt သည် ကုလသမဂ္ဂ လူ့အခွင့်အရေးကော်မရှင်တွင် ပထမဆုံးဥက္ကဋ္ဌအဖြစ် ဆောင်ရွက်ပြီး ဤစာတမ်းဖြစ်မြောက်ရေးကို အဓိက ဦးဆောင်ခဲ့သည်။",
+    explanationEN: "Eleanor Roosevelt chaired the UN Commission on Human Rights and played the most instrumental role in drafting the UDHR."
+  },
+  {
+    id: 3,
+    questionMM: "အပြည်ပြည်ဆိုင်ရာ လူ့အခွင့်အရေး ကြေညာစာတမ်း (UDHR) ကို မည်သည့်နေ့ရက်နှင့် မည်သည့်နေရာတွင် ကုလသမဂ္ဂမှ အတည်ပြုခဲ့ပါသလဲ။",
+    questionEN: "On what date and in which city was the Universal Declaration of Human Rights (UDHR) officially adopted by the UN?",
+    options: [
+      { textMM: "၁၉၄၈ ခုနှစ်၊ ဒီဇင်ဘာ ၁၀ ရက် - ပဲရစ်မြို့ (Paris)", textEN: "December 10, 1948 - Paris", isCorrect: true },
+      { textMM: "၁၉၄၅ ခုနှစ်၊ အောက်တိုဘာ ၂၄ ရက် - နယူးယောက် (New York)", textEN: "October 24, 1945 - New York", isCorrect: false },
+      { textMM: "၁၉၅၀ ခုနှစ်၊ ဇန်နဝါရီ ၁ ရက် - လန်ဒန် (London)", textEN: "January 1, 1950 - London", isCorrect: false },
+      { textMM: "၁၉၄၈ ခုနှစ်၊ နိုဝင်ဘာ ၁၁ ရက် - ဂျီနီဗာ (Geneva)", textEN: "November 11, 1948 - Geneva", isCorrect: false }
+    ],
+    explanationMM: "၁၉၄၈ ခုနှစ်၊ ဒီဇင်ဘာ ၁၀ ရက်နေ့တွင် ပြင်သစ်နိုင်ငံ၊ ပဲရစ်မြို့ရှိ Palais de Chaillot ၌ ကုလသမဂ္ဂ အထွေထွေညီလာခံမှ အတည်ပြုခဲ့ခြင်း ဖြစ်သည်။",
+    explanationEN: "It was adopted on December 10, 1948, in Paris, France at the Palais de Chaillot during the UN General Assembly."
+  },
+  {
+    id: 4,
+    questionMM: "ကမ္ဘာ့ဂင်းနစ်စံချိန်မှတ်တမ်း (Guinness World Records) အရ UDHR သည် ကမ္ဘာပေါ်တွင် မည်သည့်အချက်ဖြင့် အထူးခြားဆုံး ဖြစ်နေပါသလဲ။",
+    questionEN: "According to the Guinness World Records, what unique global milestone does the UDHR document hold?",
+    options: [
+      { textMM: "ဘာသာပြန်ဆိုမှု အများဆုံး စာရွက်စာတမ်း ဖြစ်ခြင်း", textEN: "Most translated document in the world", isCorrect: true },
+      { textMM: "စာမျက်နှာ အရှည်ဆုံး ကြေညာစာတမ်း ဖြစ်ခြင်း", textEN: "Longest document ever written", isCorrect: false },
+      { textMM: "လက်မှတ်ရေးထိုးသူ အများဆုံးစာချုပ် ဖြစ်ခြင်း", textEN: "Most signed treaty in history", isCorrect: false },
+      { textMM: "ရှေးအကျဆုံး လူ့အခွင့်အရေး ဥပဒေဖြစ်ခြင်း", textEN: "Oldest human rights charter", isCorrect: false }
+    ],
+    explanationMM: "UDHR သည် ဘာသာစကား ၅၀၀ ကျော်သို့ ပြန်ဆိုထားပြီးဖြစ်၍ ကမ္ဘာပေါ်တွင် ဘာသာပြန်ဆိုမှု အများဆုံး စာရွက်စာတမ်းအဖြစ် ဂင်းနစ်စံချိန် တင်ထားသည်။",
+    explanationEN: "UDHR is translated into over 500 languages and dialects, making it the most translated document in human history."
+  },
+  {
+    id: 5,
+    questionMM: "René Cassin ရဲ့ နှိုင်းယှဉ်ချက်အရ ဂရိဘုရားကျောင်း၏ 'မဏ္ဍိုင်ကြီးများ (Columns)' သည် UDHR ၏ မည်သည့်အခွင့်အရေးများကို ကိုယ်စားပြုပါသလဲ။",
+    questionEN: "According to René Cassin's analogy, what do the 'Columns' of the Greek Temple represent in terms of rights?",
+    options: [
+      { textMM: "ပုဂ္ဂိုလ်ရေး၊ နိုင်ငံသား၊ နိုင်ငံရေး၊ လူမှုရေးနှင့် စီးပွားရေးဆိုင်ရာ အခွင့်အရေးများ", textEN: "Individual, Civil, Political, and Socio-Economic Rights", isCorrect: true },
+      { textMM: "အခြေခံ လူ့ဂုဏ်သိက္ခာနှင့် တန်းတူညီမျှမှု သက်သက်သာ", textEN: "Dignity and Equality rules only", isCorrect: false },
+      { textMM: "နိုင်ငံတော်အပေါ် ထမ်းဆောင်ရမည့် ဝတ္တရားများ", textEN: "Duties to the Sovereign State", isCorrect: false },
+      { textMM: "နိုင်ငံတကာ စစ်ပွဲများ တားဆီးရေး သဘောတူညီချက်များ", textEN: "International laws prohibiting warfare", isCorrect: false }
+    ],
+    explanationMM: "တိုင်လုံး ၄ ခုသည် ပုဂ္ဂိုလ်ရေးဆိုင်ရာ အခွင့်အရေးများ (၃-၁၁)၊ လူမှုရေးနှင့် မိသားစုအခွင့်အရေးများ (၁၂-၁၇)၊ နိုင်ငံရေးနှင့် ဘာသာရေးဆိုင်ရာ လွတ်လပ်ခွင့်များ (၁၈-၂၁)၊ စီးပွားရေးနှင့် ယဉ်ကျေးမှုအခွင့်အရေးများ (၂၂-၂၇) ကို ကိုယ်စားပြုသည်။",
+    explanationEN: "The 4 columns represent 4 distinct layers: Personal rights (3-11), Social/relationship rights (12-17), Spiritual/political freedoms (18-21), and Economic/cultural rights (22-27)."
+  }
+];
+
+// High fidelity Web Audio API Synthesizer to provide game SFX without any heavy external file assets
+const playSynthTone = (frequency, type = 'sine', duration = 0.25) => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    osc.type = type;
+    osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+    
+    // Smooth volume transition to prevent popping noise
+    gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    
+    osc.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch (error) {
+    console.debug('Audio playback blocked by user interaction settings');
+  }
+};
+
+const playCorrectSound = () => {
+  // Arpeggio chime sound for correct answer
+  playSynthTone(523.25, 'sine', 0.15); // C5
+  setTimeout(() => {
+    playSynthTone(659.25, 'sine', 0.15); // E5
+  }, 100);
+  setTimeout(() => {
+    playSynthTone(783.99, 'sine', 0.25); // G5
+  }, 200);
+};
+
+const playIncorrectSound = () => {
+  // Low buzzing warning sound
+  playSynthTone(180, 'triangle', 0.3);
+  setTimeout(() => {
+    playSynthTone(150, 'triangle', 0.35);
+  }, 120);
+};
+
+const playWinSound = () => {
+  // Fun triumph fanfare
+  const notes = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+  notes.forEach((freq, idx) => {
+    setTimeout(() => {
+      playSynthTone(freq, 'sine', 0.2);
+    }, idx * 100);
+  });
+};
+
+export default function App() {
+  // Main Navigation / Page States: 'home' | 'learn' | 'build' | 'quiz' | 'history'
+  const [activeTab, setActiveTab] = useState('home');
+  const [lang, setLang] = useState('MM'); // 'MM' (Myanmar) or 'EN' (English)
+
+  // Game 1 State: Build the Temple
+  const [gameStarted, setGameStarted] = useState(false);
+  const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+  const [templeProgress, setTempleProgress] = useState({
+    Foundation: 0, // Max 2
+    Column1: 0,    // Max 3
+    Column2: 0,    // Max 2
+    Column3: 0,    // Max 2
+    Column4: 0,    // Max 2
+    Pediment: 0    // Max 2
+  });
+  const [shuffledGamePool, setShuffledGamePool] = useState([]);
+  const [showFeedback, setShowFeedback] = useState(null); // { isCorrect: boolean, msgMM: string, msgEN: string }
+  const [gameCompleted, setGameCompleted] = useState(false);
+  const [score, setScore] = useState(0);
+
+  // Game 2 State: Quiz Mode
+  const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [quizScore, setQuizScore] = useState(0);
+  const [quizFinished, setQuizFinished] = useState(false);
+  const [showQuizExplanation, setShowQuizExplanation] = useState(false);
+
+  // General Notification Alert (Custom instead of alert())
+  const [notification, setNotification] = useState(null);
+
+  // Highlight helper for active temple elements
+  const [highlightedSection, setHighlightedSection] = useState(null);
+
+  // Localization Helpers
+  const t = (textMM, textEN) => (lang === 'MM' ? textMM : textEN);
+
+  // Launch the Build the Temple Game with random set of articles representing different parts
+  const initTempleGame = () => {
+    // Collect representatives from all parts to keep the gameplay energetic & balanced (total 12 cards)
+    const foundationGroup = UDHR_ARTICLES.filter(a => a.section === "Foundation").slice(0, 2);
+    const col1Group = UDHR_ARTICLES.filter(a => a.section === "Column 1").sort(() => 0.5 - Math.random()).slice(0, 2);
+    const col2Group = UDHR_ARTICLES.filter(a => a.section === "Column 2").sort(() => 0.5 - Math.random()).slice(0, 2);
+    const col3Group = UDHR_ARTICLES.filter(a => a.section === "Column 3").sort(() => 0.5 - Math.random()).slice(0, 2);
+    const col4Group = UDHR_ARTICLES.filter(a => a.section === "Column 4").sort(() => 0.5 - Math.random()).slice(0, 2);
+    const pedimentGroup = UDHR_ARTICLES.filter(a => a.section === "Pediment").slice(0, 2);
+
+    const fullPool = [
+      ...foundationGroup,
+      ...col1Group,
+      ...col2Group,
+      ...col3Group,
+      ...col4Group,
+      ...pedimentGroup
+    ].sort(() => 0.5 - Math.random()); // Randomize order
+
+    setShuffledGamePool(fullPool);
+    setTempleProgress({
+      Foundation: 0,
+      Column1: 0,
+      Column2: 0,
+      Column3: 0,
+      Column4: 0,
+      Pediment: 0
+    });
+    setCurrentArticleIndex(0);
+    setScore(0);
+    setGameCompleted(false);
+    setShowFeedback(null);
+    setGameStarted(true);
+  };
+
+  const handleTemplePlacement = (sectionName) => {
+    if (showFeedback) return; // Prevent spamming during animation
+
+    const currentArt = shuffledGamePool[currentArticleIndex];
+    // Map article database name standard with visual segment name
+    const normalizedArtSection = currentArt.section.replace(/\s+/g, '');
+    const targetSectionNormalized = sectionName.replace(/\s+/g, '');
+
+    const isMatch = normalizedArtSection === targetSectionNormalized;
+
+    if (isMatch) {
+      playCorrectSound();
+      setScore(prev => prev + 10);
+      setTempleProgress(prev => ({
+        ...prev,
+        [normalizedArtSection]: Math.min(prev[normalizedArtSection] + 1, 2)
+      }));
+      setShowFeedback({
+        isCorrect: true,
+        msgMM: `မှန်ကန်ပါတယ်! ${currentArt.titleMM} သည် ${getSectionNameMM(normalizedArtSection)} တွင် ပါဝင်သည်။`,
+        msgEN: `Excellent! ${currentArt.titleEN} fits perfectly inside the ${getSectionNameEN(normalizedArtSection)}.`
+      });
+    } else {
+      playIncorrectSound();
+      setShowFeedback({
+        isCorrect: false,
+        msgMM: `မမှန်သေးပါ။ ${currentArt.titleMM} သည် တကယ်တော့ ${getSectionNameMM(normalizedArtSection)} တွင် တည်ရှိသည်။`,
+        msgEN: `Not quite! ${currentArt.titleEN} actually belongs under the ${getSectionNameEN(normalizedArtSection)}.`
+      });
+    }
+
+    setTimeout(() => {
+      setShowFeedback(null);
+      if (currentArticleIndex < shuffledGamePool.length - 1) {
+        setCurrentArticleIndex(prev => prev + 1);
+      } else {
+        setGameCompleted(true);
+        playWinSound();
+      }
+    }, 4500);
+  };
+
+  const getSectionNameMM = (sec) => {
+    switch(sec) {
+      case 'Foundation': return 'အခြေခံအုတ်မြစ် (Foundation)';
+      case 'Column1': return 'ပထမတိုင်လုံး (Individual Rights)';
+      case 'Column2': return 'ဒုတိယတိုင်လုံး (Civil & Political Rights)';
+      case 'Column3': return 'တတိယတိုင်လုံး (Spiritual & Political Freedoms)';
+      case 'Column4': return 'စတုတ္ထတိုင်လုံး (Socio-Economic Rights)';
+      case 'Pediment': return 'အမိုးအကာ (Pediment)';
+      default: return sec;
+    }
+  };
+
+  const getSectionNameEN = (sec) => {
+    switch(sec) {
+      case 'Foundation': return 'Foundation (Articles 1-2)';
+      case 'Column1': return 'Column 1 (Articles 3-11)';
+      case 'Column2': return 'Column 2 (Articles 12-17)';
+      case 'Column3': return 'Column 3 (Articles 18-21)';
+      case 'Column4': return 'Column 4 (Articles 22-27)';
+      case 'Pediment': return 'Pediment Roof (Articles 28-30)';
+      default: return sec;
+    }
+  };
+
+  const handleQuizAnswer = (option) => {
+    if (selectedOption) return; // Block double clicks
+    setSelectedOption(option);
+    setShowQuizExplanation(true);
+
+    if (option.isCorrect) {
+      playCorrectSound();
+      setQuizScore(prev => prev + 20);
+    } else {
+      playIncorrectSound();
+    }
+  };
+
+  const nextQuizQuestion = () => {
+    setSelectedOption(null);
+    setShowQuizExplanation(false);
+    if (currentQuizIdx < TRIVIA_QUESTIONS.length - 1) {
+      setCurrentQuizIdx(prev => prev + 1);
+    } else {
+      setQuizFinished(true);
+      playWinSound();
+    }
+  };
+
+  const restartQuiz = () => {
+    setCurrentQuizIdx(0);
+    setSelectedOption(null);
+    setQuizScore(0);
+    setQuizFinished(false);
+    setShowQuizExplanation(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-900 overflow-x-hidden">
+      
+      {/* Top Navigation Bar */}
+      <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 md:px-8 flex items-center justify-between shadow-lg">
+        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
+          <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-2.5 rounded-xl shadow-md shadow-amber-500/20 transform hover:scale-105 transition-all">
+            <Layers className="h-6 w-6 text-slate-900 stroke-[2]" />
+          </div>
+          <div>
+            <h1 className="font-bold text-lg md:text-xl tracking-wide bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">
+              UDHR Human Rights Temple
+            </h1>
+            <p className="text-xs text-slate-400 hidden md:block">
+              Interactive Educational Game & Blueprint
+            </p>
+          </div>
+        </div>
+
+        {/* Global Toolbar */}
+        <div className="flex items-center space-x-3 md:space-x-4">
+          {/* Language Switcher */}
+          <button 
+            onClick={() => {
+              setLang(lang === 'MM' ? 'EN' : 'MM');
+              playSynthTone(400, 'sine', 0.1);
+            }}
+            className="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700/60 px-3 py-1.5 rounded-lg text-xs md:text-sm transition-all text-amber-300 font-semibold"
+          >
+            <Globe className="h-4 w-4" />
+            <span>{lang === 'MM' ? 'English (EN)' : 'မြန်မာ (MM)'}</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <main className="flex-grow flex flex-col max-w-7xl w-full mx-auto p-4 md:p-8">
+
+        {/* Notification Banner */}
+        {notification && (
+          <div className="bg-indigo-950 border border-indigo-500 text-indigo-200 px-4 py-3 rounded-xl mb-6 flex items-center justify-between animate-bounce">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="h-5 w-5 text-amber-400" />
+              <span>{notification}</span>
+            </div>
+            <button onClick={() => setNotification(null)} className="hover:text-white font-bold">&times;</button>
+          </div>
+        )}
+
+        {/* ==================== SCREEN 1: HOME DASHBOARD ==================== */}
+        {activeTab === 'home' && (
+          <div className="space-y-8 animate-fadeIn">
+            {/* Hero Splash Header */}
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 p-6 md:p-12 text-center shadow-2xl flex flex-col items-center">
+              {/* Background ambient mesh */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.06)_0,transparent_60%)] pointer-events-none" />
+              
+              <div className="inline-flex items-center space-x-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-6">
+                <Globe className="w-3.5 h-3.5" />
+                <span>{t("ကမ္ဘာ့လူ့အခွင့်အရေးကြေညာစာတမ်း ဂိမ်း", "Universal Human Rights Temple Concept")}</span>
+              </div>
+
+              <h2 className="text-3xl md:text-5xl font-extrabold max-w-3xl leading-tight text-white mb-4">
+                {t("လူ့အခွင့်အရေး ဂရိဘုရားကျောင်းကြီး တည်ဆောက်စို့", "Build the Portico of Human Rights")}
+              </h2>
+              <p className="text-slate-400 max-w-2xl text-sm md:text-base leading-relaxed mb-8">
+                {t(
+                  "ပြင်သစ်ဥပဒေပညာရှင် René Cassin က ၁၉၄၈ ခုနှစ် အပြည်ပြည်ဆိုင်ရာ လူ့အခွင့်အရေး ကြေညာစာတမ်း (UDHR) ကို ဂရိဘုရားကျောင်း (Greek Temple) တစ်ခုရဲ့ ဗိသုကာအတိုင်း နှိုင်းယှဉ်တင်ပြခဲ့ပါတယ်။ ဒီဂိမ်းထဲမှာ အပိုဒ်ပေါင်း ၃၀ ရဲ့ အဓိကတန်ဖိုးတွေကို အခြေခံအုတ်မြစ်၊ တိုင်လုံးကြီးတွေနဲ့ အမိုးအကာတွေအဖြစ် နေရာမှန် တပ်ဆင်ရင်း ကစားရင်း လေ့လာလိုက်ပါ။",
+                  "René Cassin, drafting father of the UDHR, described the structure of the declaration as a majestic Greek Temple. Play to categorize the 30 articles correctly into Foundations, the 4 Columns, and the Pediment Roof to restore human dignity."
+                )}
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+                <button
+                  onClick={() => {
+                    initTempleGame();
+                    setActiveTab('build');
+                  }}
+                  className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold px-8 py-4 rounded-xl shadow-lg hover:shadow-amber-500/20 transform hover:-translate-y-0.5 transition-all text-center flex items-center justify-center space-x-2"
+                >
+                  <Layers className="h-5 w-5 stroke-[2.5]" />
+                  <span>{t("ဂိမ်းစကစားမည် (Temple Builder)", "Build The Temple Game")}</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('learn')}
+                  className="w-full sm:w-auto bg-slate-900 border border-slate-800 text-slate-300 font-semibold px-8 py-4 rounded-xl hover:bg-slate-800 hover:text-white transition-all text-center flex items-center justify-center space-x-2"
+                >
+                  <BookOpen className="h-5 w-5 text-amber-400" />
+                  <span>{t("အပိုဒ် ၃၀ လေ့လာရန် (Articles Explorer)", "Learn Articles (30 Articles)")}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Stats / Highlights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-slate-900/60 border border-slate-800/80 p-6 rounded-2xl flex items-start space-x-4">
+                <div className="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 text-amber-400">
+                  <Compass className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-1">{t("သမိုင်းဝင်ပုဂ္ဂိုလ်များ Quiz", "History Trivia Quiz")}</h3>
+                  <p className="text-slate-400 text-sm mb-4">
+                    {t("ဒုတိယကမ္ဘာစစ်၊ Roosevelt ၏ Four Freedoms နှင့် ကမ္ဘာ့အကြီးကျယ်ဆုံး ဖြစ်ရပ်များအကြောင်း ဉာဏ်စမ်းကစားပါ။", "Test your knowledge about Eleanor Roosevelt, Paris signing, and WWII Four Freedoms.")}
+                  </p>
+                  <button 
+                    onClick={() => {
+                      restartQuiz();
+                      setActiveTab('quiz');
+                    }}
+                    className="text-amber-400 hover:text-amber-300 font-semibold text-sm inline-flex items-center space-x-1"
+                  >
+                    <span>{t("ဉာဏ်စမ်းစိန်ခေါ်ရန်", "Start Quiz Challenge")}</span>
+                    <span>&rarr;</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/60 border border-slate-800/80 p-6 rounded-2xl flex items-start space-x-4">
+                <div className="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 text-amber-400">
+                  <BookMarked className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-1">{t("ဂရိဘုရားကျောင်း၏ အဓိပ္ပာယ်", "The Temple Blueprint")}</h3>
+                  <p className="text-slate-400 text-sm mb-4">
+                    {t("အခြေခံအုတ်မြစ်မှသည် အမိုးအကာအထိ အခွင့်အရေးများ တစ်ခုနှင့်တစ်ခု မည်သို့ချိတ်ဆက်ထားပုံကို သမိုင်းဝင်ပုံစံဖြင့် မြင်တွေ့ရမည်။", "Discover why René Cassin compared these global standards to ancient architectural columns.")}
+                  </p>
+                  <button 
+                    onClick={() => setActiveTab('history')}
+                    className="text-amber-400 hover:text-amber-300 font-semibold text-sm inline-flex items-center space-x-1"
+                  >
+                    <span>{t("သမိုင်းကြောင်းနှင့် အယူအဆ", "Read Temple Concept")}</span>
+                    <span>&rarr;</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/60 border border-slate-800/80 p-6 rounded-2xl flex items-start space-x-4">
+                <div className="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 text-amber-400">
+                  <Award className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-1">{t("ဂိမ်းကစားနည်း ညွှန်ကြားချက်", "How to Play Game")}</h3>
+                  <p className="text-slate-400 text-sm mb-4">
+                    {t("မေးခွန်းကတ်ပြားပါ အခွင့်အရေးကို ဖတ်ပြီး ဂရိဘုရားကျောင်း၏ နေရာမှန် (Foundation, Columns, Pediment) ကို နှိပ်၍ တည်ဆောက်ပါ။", "Read the human rights card, tap the correct segment of the temple to fit, and see the architecture glow up.")}
+                  </p>
+                  <button 
+                    onClick={() => {
+                      initTempleGame();
+                      setActiveTab('build');
+                    }}
+                    className="text-amber-400 hover:text-amber-300 font-semibold text-sm inline-flex items-center space-x-1"
+                  >
+                    <span>{t("အမြန်ကစားနည်းကြည့်ရန်", "How to Play Game")}</span>
+                    <span>&rarr;</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==================== SCREEN 2: ARTICLES EXPLORER ==================== */}
+        {activeTab === 'learn' && (
+          <div className="space-y-6 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <button 
+                  onClick={() => setActiveTab('home')} 
+                  className="text-slate-400 hover:text-white flex items-center space-x-1 mb-2 text-sm"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>{t("ပင်မစာမျက်နှာ", "Back to Home")}</span>
+                </button>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+                  <BookOpen className="text-amber-400 h-8 w-8" />
+                  <span>{t("အပြည်ပြည်ဆိုင်ရာ လူ့အခွင့်အရေး ကြေညာစာတမ်း လေ့လာရေး", "UDHR Articles Blueprint Explorer")}</span>
+                </h2>
+              </div>
+            </div>
+
+            {/* Categorized Blueprint of the Greek Temple */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column: Conceptual Blueprint index */}
+              <div className="lg:col-span-1 bg-slate-900 border border-slate-800 p-6 rounded-2xl h-fit space-y-6">
+                <h3 className="text-lg font-bold text-amber-300 flex items-center space-x-2">
+                  <Layers className="h-5 w-5" />
+                  <span>{t("ဘုရားကျောင်း၏ ဗိသုကာ ဖွဲ့စည်းပုံ", "René Cassin's Portico Structure")}</span>
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  {t(
+                    "လူ့အခွင့်အရေး ကြေညာစာတမ်းသည် ကျပန်းရေးဆွဲထားခြင်း မဟုတ်ဘဲ အလွန်တရာ စနစ်တကျရှိသော သမိုင်းဝင် ဒီဇိုင်းပုံစံ ဖြစ်သည်။",
+                    "The Portico of Human Rights is beautifully structured into separate layers supporting the supreme roof of social and global order."
+                  )}
+                </p>
+
+                <div className="space-y-3">
+                  <div className="p-3 rounded-lg bg-amber-500/10 border-l-4 border-amber-500">
+                    <p className="font-bold text-amber-400 text-sm">1. Foundation (အခြေခံအုတ်မြစ်)</p>
+                    <p className="text-xs text-slate-400 mt-1">{t("အပိုဒ် ၁ မှ ၂ (ဂုဏ်သိက္ခာ၊ တန်းတူညီမျှမှုနှင့် လွတ်လပ်ခွင့်)", "Articles 1-2: Human dignity, liberty, equality and fraternity.")}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-emerald-500/10 border-l-4 border-emerald-500">
+                    <p className="font-bold text-emerald-400 text-sm">2. Column 1 (ပထမမဏ္ဍိုင်)</p>
+                    <p className="text-xs text-slate-400 mt-1">{t("အပိုဒ် ၃ မှ ၁၁ (တစ်ဦးချင်းအခွင့်အရေး၊ အသက်ရှင်ခွင့်၊ ဥပဒေကာကွယ်မှု)", "Articles 3-11: Rights of the individual (life, ban on slavery & torture).")}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-blue-500/10 border-l-4 border-blue-500">
+                    <p className="font-bold text-blue-400 text-sm">3. Column 2 (ဒုတိယမဏ္ဍိုင်)</p>
+                    <p className="text-xs text-slate-400 mt-1">{t("အပိုဒ် ၁၂ မှ ၁၇ (နိုင်ငံသားနှင့် ပုဂ္ဂိုလ်ရေးဆိုင်ရာ အခွင့်အရေးများ)", "Articles 12-17: Rights of the individual in civil society (privacy, movement).")}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-indigo-500/10 border-l-4 border-indigo-500">
+                    <p className="font-bold text-indigo-400 text-sm">4. Column 3 (တတိယမဏ္ဍိုင်)</p>
+                    <p className="text-xs text-slate-400 mt-1">{t("အပိုဒ် ၁၈ မှ ၂၁ (ယုံကြည်ခွင့်၊ ဘာသာရေး၊ လွတ်လပ်စွာထုတ်ဖော်ခွင့်)", "Articles 18-21: Spiritual, public and political liberties.")}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-purple-500/10 border-l-4 border-purple-500">
+                    <p className="font-bold text-purple-400 text-sm">5. Column 4 (စတုတ္ထမဏ္ဍိုင်)</p>
+                    <p className="text-xs text-slate-400 mt-1">{t("အပိုဒ် ၂၂ မှ ၂၇ (စီးပွားရေး၊ လူမှုရေး၊ အလုပ်သမားနှင့် ယဉ်ကျေးမှုအခွင့်အရေး)", "Articles 22-27: Economic, social and cultural rights.")}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-rose-500/10 border-l-4 border-rose-500">
+                    <p className="font-bold text-rose-400 text-sm">6. Pediment (အမိုးအကာ / တြိဂံအမိုး)</p>
+                    <p className="text-xs text-slate-400 mt-1">{t("အပိုဒ် ၂၈ မှ ၃၀ (လူ့အဖွဲ့အစည်းအပေါ် တာဝန်နှင့် ကမ္ဘာ့ငြိမ်းချမ်းရေးအစီအစဉ်)", "Articles 28-30: Social and international order, duty to community.")}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Interactive Articles Database scrollable list */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                  <span className="font-semibold text-sm text-slate-300">{t("စုစုပေါင်းလေ့လာနိုင်သော အပိုဒ်များ", "Articles available for exploration")}</span>
+                  <span className="bg-amber-500 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-full">{UDHR_ARTICLES.length} Selected Articles</span>
+                </div>
+
+                <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
+                  {UDHR_ARTICLES.map((art) => {
+                    let secColor = "border-amber-500/50 bg-amber-500/5";
+                    let badgeColor = "bg-amber-400/10 text-amber-300 border-amber-400/20";
+                    if (art.section === "Column 1") {
+                      secColor = "border-emerald-500/50 bg-emerald-500/5";
+                      badgeColor = "bg-emerald-400/10 text-emerald-300 border-emerald-400/20";
+                    } else if (art.section === "Column 2") {
+                      secColor = "border-blue-500/50 bg-blue-500/5";
+                      badgeColor = "bg-blue-400/10 text-blue-300 border-blue-400/20";
+                    } else if (art.section === "Column 3") {
+                      secColor = "border-indigo-500/50 bg-indigo-500/5";
+                      badgeColor = "bg-indigo-400/10 text-indigo-300 border-indigo-400/20";
+                    } else if (art.section === "Column 4") {
+                      secColor = "border-purple-500/50 bg-purple-500/5";
+                      badgeColor = "bg-purple-400/10 text-purple-300 border-purple-400/20";
+                    } else if (art.section === "Pediment") {
+                      secColor = "border-rose-500/50 bg-rose-500/5";
+                      badgeColor = "bg-rose-400/10 text-rose-300 border-rose-400/20";
+                    }
+
+                    return (
+                      <div 
+                        key={art.id} 
+                        className={`p-5 rounded-2xl border ${secColor} transition-all hover:scale-[1.01] hover:shadow-lg`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                          <h4 className="font-extrabold text-lg text-white">
+                            {t(art.titleMM, art.titleEN)}
+                          </h4>
+                          <span className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${badgeColor} w-fit`}>
+                            {t(getSectionNameMM(art.section.replace(/\s+/g, '')), getSectionNameEN(art.section.replace(/\s+/g, '')))}
+                          </span>
+                        </div>
+                        <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                          {t(art.descMM, art.descEN)}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==================== SCREEN 3: BUILD THE HUMAN RIGHTS TEMPLE (GAME) ==================== */}
+        {activeTab === 'build' && gameStarted && (
+          <div className="space-y-6 animate-fadeIn">
+            {/* Header control and statistics bar */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-slate-800 pb-4 gap-4">
+              <div>
+                <button 
+                  onClick={() => {
+                    setGameStarted(false);
+                    setActiveTab('home');
+                  }} 
+                  className="text-slate-400 hover:text-white flex items-center space-x-1 mb-2 text-sm"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>{t("ထွက်မည်", "Quit Game")}</span>
+                </button>
+                <h2 className="text-2xl font-extrabold text-white flex items-center space-x-2">
+                  <Layers className="text-amber-400 h-6 w-6" />
+                  <span>{t("ဂရိလူ့အခွင့်အရေးဘုရားကျောင်း တည်ဆောက်ခြင်းဂိမ်း", "Build the Human Rights Temple")}</span>
+                </h2>
+              </div>
+
+              {/* Progress and Score card */}
+              <div className="flex items-center space-x-6 bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-xl">
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">{t("ရမှတ် (Score)", "Score")}</p>
+                  <p className="text-xl font-black text-amber-400">{score}</p>
+                </div>
+                <div className="h-8 w-px bg-slate-800" />
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">{t("ပြီးမြောက်မှု (Cards)", "Progress")}</p>
+                  <p className="text-lg font-bold text-slate-200">
+                    {currentArticleIndex + 1} <span className="text-slate-500 text-sm">/ {shuffledGamePool.length}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Interactive Gameboard */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              
+              {/* Left Grid: Visual Greek Temple Vector SVG */}
+              <div className="lg:col-span-7 bg-slate-900 border border-slate-800/80 p-6 rounded-3xl flex flex-col items-center justify-center relative min-h-[400px]">
+                <div className="absolute top-4 left-4 bg-slate-950/80 border border-slate-800/60 px-3 py-1 rounded-full text-xs font-semibold text-amber-300">
+                  {t("ဘုရားကျောင်း Visual Blueprint", "Temple Vector Blueprint")}
+                </div>
+
+                {/* Vector Greek Temple Structure */}
+                <div className="w-full max-w-[500px] h-auto p-4 transition-all duration-300 mt-6">
+                  <svg viewBox="0 0 500 400" className="w-full h-auto overflow-visible select-none">
+                    
+                    {/* BACKGROUND AMBIENCE SHINE */}
+                    <defs>
+                      <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.25" />
+                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                      </radialGradient>
+                    </defs>
+
+                    {/* PEDIMENT / ROOF (Articles 28-30) */}
+                    <g 
+                      onClick={() => handleTemplePlacement('Pediment')}
+                      onMouseEnter={() => setHighlightedSection('Pediment')}
+                      onMouseLeave={() => setHighlightedSection(null)}
+                      className="cursor-pointer transition-all duration-300"
+                    >
+                      {/* Active Highlighting Glow */}
+                      {(highlightedSection === 'Pediment' || templeProgress.Pediment > 0) && (
+                        <circle cx="250" cy="80" r="100" fill="url(#glow)" className="animate-pulse" />
+                      )}
+                      
+                      {/* Triangle Roof Frame */}
+                      <polygon 
+                        points="250,20 20,90 480,90" 
+                        fill={templeProgress.Pediment > 0 ? "rgba(239, 68, 68, 0.25)" : "rgba(30, 41, 59, 0.4)"}
+                        stroke={templeProgress.Pediment > 0 ? "#f43f5e" : "#475569"}
+                        strokeWidth={highlightedSection === 'Pediment' ? "3.5" : "2"}
+                        className="transition-all duration-300"
+                      />
+                      <polygon 
+                        points="250,30 50,80 450,80" 
+                        fill="none" 
+                        stroke={templeProgress.Pediment > 1 ? "#f43f5e" : "#334155"} 
+                        strokeWidth="1" 
+                      />
+                      {/* Pediment Inner Typography / Engraving */}
+                      <text 
+                        x="250" 
+                        y="70" 
+                        textAnchor="middle" 
+                        fill={templeProgress.Pediment > 0 ? "#fda4af" : "#64748b"} 
+                        className="text-[12px] font-extrabold tracking-widest uppercase"
+                      >
+                        {t("အမိုးအကာ (PEDIMENT)", "PEDIMENT (ART 28-30)")}
+                      </text>
+                    </g>
+
+                    {/* ARCHITRAVE / INNER BEAM */}
+                    <rect 
+                      x="35" 
+                      y="90" 
+                      width="430" 
+                      height="20" 
+                      fill="#1e293b" 
+                      stroke="#475569" 
+                      strokeWidth="2" 
+                    />
+
+                    {/* COLUMN 1 (Articles 3-11) */}
+                    <g 
+                      onClick={() => handleTemplePlacement('Column 1')}
+                      onMouseEnter={() => setHighlightedSection('Column 1')}
+                      onMouseLeave={() => setHighlightedSection(null)}
+                      className="cursor-pointer transition-all duration-300"
+                    >
+                      {(highlightedSection === 'Column 1' || templeProgress.Column1 > 0) && (
+                        <rect x="55" y="110" width="60" height="210" fill="url(#glow)" />
+                      )}
+                      {/* Outer Pillar Frame */}
+                      <rect 
+                        x="70" 
+                        y="110" 
+                        width="30" 
+                        height="210" 
+                        rx="2"
+                        fill={templeProgress.Column1 > 0 ? "rgba(16, 185, 129, 0.25)" : "rgba(30, 41, 59, 0.4)"}
+                        stroke={templeProgress.Column1 > 0 ? "#10b981" : "#475569"}
+                        strokeWidth={highlightedSection === 'Column 1' ? "3" : "2"}
+                        className="transition-all duration-300"
+                      />
+                      {/* Fluting internal pillar stripes */}
+                      <line x1="77" y1="120" x2="77" y2="310" stroke={templeProgress.Column1 > 1 ? "#34d399" : "#334155"} strokeWidth="1" />
+                      <line x1="85" y1="120" x2="85" y2="310" stroke={templeProgress.Column1 > 1 ? "#34d399" : "#334155"} strokeWidth="1" />
+                      <line x1="93" y1="120" x2="93" y2="310" stroke={templeProgress.Column1 > 1 ? "#34d399" : "#334155"} strokeWidth="1" />
+                      {/* Capital and Base of Pillar */}
+                      <rect x="65" y="110" width="40" height="8" rx="1" fill="#475569" stroke="#64748b" strokeWidth="1" />
+                      <rect x="65" y="312" width="40" height="8" rx="1" fill="#475569" stroke="#64748b" strokeWidth="1" />
+                      
+                      <text x="85" y="215" textAnchor="middle" transform="rotate(-90 85 215)" fill={templeProgress.Column1 > 0 ? "#a7f3d0" : "#64748b"} className="text-[10px] font-bold">
+                        {t("တိုင် ၁ (တစ်ဦးချင်း)", "COL 1 (INDIVIDUAL)")}
+                      </text>
+                    </g>
+
+                    {/* COLUMN 2 (Articles 12-17) */}
+                    <g 
+                      onClick={() => handleTemplePlacement('Column 2')}
+                      onMouseEnter={() => setHighlightedSection('Column 2')}
+                      onMouseLeave={() => setHighlightedSection(null)}
+                      className="cursor-pointer transition-all duration-300"
+                    >
+                      {(highlightedSection === 'Column 2' || templeProgress.Column2 > 0) && (
+                        <rect x="155" y="110" width="60" height="210" fill="url(#glow)" />
+                      )}
+                      <rect 
+                        x="170" 
+                        y="110" 
+                        width="30" 
+                        height="210" 
+                        rx="2"
+                        fill={templeProgress.Column2 > 0 ? "rgba(59, 130, 246, 0.25)" : "rgba(30, 41, 59, 0.4)"}
+                        stroke={templeProgress.Column2 > 0 ? "#3b82f6" : "#475569"}
+                        strokeWidth={highlightedSection === 'Column 2' ? "3" : "2"}
+                        className="transition-all duration-300"
+                      />
+                      <line x1="177" y1="120" x2="177" y2="310" stroke={templeProgress.Column2 > 1 ? "#60a5fa" : "#334155"} strokeWidth="1" />
+                      <line x1="185" y1="120" x2="185" y2="310" stroke={templeProgress.Column2 > 1 ? "#60a5fa" : "#334155"} strokeWidth="1" />
+                      <line x1="193" y1="120" x2="193" y2="310" stroke={templeProgress.Column2 > 1 ? "#60a5fa" : "#334155"} strokeWidth="1" />
+                      <rect x="165" y="110" width="40" height="8" rx="1" fill="#475569" stroke="#64748b" strokeWidth="1" />
+                      <rect x="165" y="312" width="40" height="8" rx="1" fill="#475569" stroke="#64748b" strokeWidth="1" />
+
+                      <text x="185" y="215" textAnchor="middle" transform="rotate(-90 185 215)" fill={templeProgress.Column2 > 0 ? "#bfdbfe" : "#64748b"} className="text-[10px] font-bold">
+                        {t("တိုင် ၂ (နိုင်ငံသားအခွင့်)", "COL 2 (CIVIL)")}
+                      </text>
+                    </g>
+
+                    {/* COLUMN 3 (Articles 18-21) */}
+                    <g 
+                      onClick={() => handleTemplePlacement('Column 3')}
+                      onMouseEnter={() => setHighlightedSection('Column 3')}
+                      onMouseLeave={() => setHighlightedSection(null)}
+                      className="cursor-pointer transition-all duration-300"
+                    >
+                      {(highlightedSection === 'Column 3' || templeProgress.Column3 > 0) && (
+                        <rect x="255" y="110" width="60" height="210" fill="url(#glow)" />
+                      )}
+                      <rect 
+                        x="270" 
+                        y="110" 
+                        width="30" 
+                        height="210" 
+                        rx="2"
+                        fill={templeProgress.Column3 > 0 ? "rgba(99, 102, 241, 0.25)" : "rgba(30, 41, 59, 0.4)"}
+                        stroke={templeProgress.Column3 > 0 ? "#6366f1" : "#475569"}
+                        strokeWidth={highlightedSection === 'Column 3' ? "3" : "2"}
+                        className="transition-all duration-300"
+                      />
+                      <line x1="277" y1="120" x2="277" y2="310" stroke={templeProgress.Column3 > 1 ? "#818cf8" : "#334155"} strokeWidth="1" />
+                      <line x1="285" y1="120" x2="285" y2="310" stroke={templeProgress.Column3 > 1 ? "#818cf8" : "#334155"} strokeWidth="1" />
+                      <line x1="293" y1="120" x2="293" y2="310" stroke={templeProgress.Column3 > 1 ? "#818cf8" : "#334155"} strokeWidth="1" />
+                      <rect x="265" y="110" width="40" height="8" rx="1" fill="#475569" stroke="#64748b" strokeWidth="1" />
+                      <rect x="265" y="312" width="40" height="8" rx="1" fill="#475569" stroke="#64748b" strokeWidth="1" />
+
+                      <text x="285" y="215" textAnchor="middle" transform="rotate(-90 285 215)" fill={templeProgress.Column3 > 0 ? "#c7d2fe" : "#64748b"} className="text-[10px] font-bold">
+                        {t("တိုင် ၃ (နိုင်ငံရေးလွတ်လပ်)", "COL 3 (POLITICAL)")}
+                      </text>
+                    </g>
+
+                    {/* COLUMN 4 (Articles 22-27) */}
+                    <g 
+                      onClick={() => handleTemplePlacement('Column 4')}
+                      onMouseEnter={() => setHighlightedSection('Column 4')}
+                      onMouseLeave={() => setHighlightedSection(null)}
+                      className="cursor-pointer transition-all duration-300"
+                    >
+                      {(highlightedSection === 'Column 4' || templeProgress.Column4 > 0) && (
+                        <rect x="355" y="110" width="60" height="210" fill="url(#glow)" />
+                      )}
+                      <rect 
+                        x="370" 
+                        y="110" 
+                        width="30" 
+                        height="210" 
+                        rx="2"
+                        fill={templeProgress.Column4 > 0 ? "rgba(168, 85, 247, 0.25)" : "rgba(30, 41, 59, 0.4)"}
+                        stroke={templeProgress.Column4 > 0 ? "#a855f7" : "#475569"}
+                        strokeWidth={highlightedSection === 'Column 4' ? "3" : "2"}
+                        className="transition-all duration-300"
+                      />
+                      <line x1="377" y1="120" x2="377" y2="310" stroke={templeProgress.Column4 > 1 ? "#c084fc" : "#334155"} strokeWidth="1" />
+                      <line x1="385" y1="120" x2="385" y2="310" stroke={templeProgress.Column4 > 1 ? "#c084fc" : "#334155"} strokeWidth="1" />
+                      <line x1="393" y1="120" x2="393" y2="310" stroke={templeProgress.Column4 > 1 ? "#c084fc" : "#334155"} strokeWidth="1" />
+                      <rect x="365" y="110" width="40" height="8" rx="1" fill="#475569" stroke="#64748b" strokeWidth="1" />
+                      <rect x="365" y="312" width="40" height="8" rx="1" fill="#475569" stroke="#64748b" strokeWidth="1" />
+
+                      <text x="385" y="215" textAnchor="middle" transform="rotate(-90 385 215)" fill={templeProgress.Column4 > 0 ? "#e9d5ff" : "#64748b"} className="text-[10px] font-bold">
+                        {t("တိုင် ၄ (လူမှုစီးပွား)", "COL 4 (ECONOMIC)")}
+                      </text>
+                    </g>
+
+                    {/* FOUNDATION STEPS (Articles 1-2) */}
+                    <g 
+                      onClick={() => handleTemplePlacement('Foundation')}
+                      onMouseEnter={() => setHighlightedSection('Foundation')}
+                      onMouseLeave={() => setHighlightedSection(null)}
+                      className="cursor-pointer transition-all duration-300"
+                    >
+                      {(highlightedSection === 'Foundation' || templeProgress.Foundation > 0) && (
+                        <rect x="10" y="320" width="480" height="60" fill="url(#glow)" />
+                      )}
+                      
+                      {/* Step 1 */}
+                      <rect 
+                        x="15" 
+                        y="320" 
+                        width="470" 
+                        height="20" 
+                        rx="1"
+                        fill={templeProgress.Foundation > 0 ? "rgba(245, 158, 11, 0.25)" : "rgba(30, 41, 59, 0.4)"}
+                        stroke={templeProgress.Foundation > 0 ? "#f59e0b" : "#475569"}
+                        strokeWidth={highlightedSection === 'Foundation' ? "3.5" : "2"}
+                        className="transition-all duration-300"
+                      />
+                      {/* Step 2 */}
+                      <rect 
+                        x="5" 
+                        y="340" 
+                        width="490" 
+                        height="20" 
+                        rx="1"
+                        fill={templeProgress.Foundation > 0 ? "rgba(217, 119, 6, 0.25)" : "rgba(15, 23, 42, 0.4)"}
+                        stroke={templeProgress.Foundation > 0 ? "#d97706" : "#475569"}
+                        strokeWidth={highlightedSection === 'Foundation' ? "3.5" : "2"}
+                        className="transition-all duration-300"
+                      />
+                      {/* Engraved baseline text */}
+                      <text 
+                        x="250" 
+                        y="335" 
+                        textAnchor="middle" 
+                        fill={templeProgress.Foundation > 0 ? "#fef3c7" : "#64748b"} 
+                        className="text-[11px] font-black tracking-widest"
+                      >
+                        {t("အခြေခံအုတ်မြစ် (FOUNDATION - ART 1-2)", "FOUNDATION BASE: LIBERTY & EQUALITY (ART 1-2)")}
+                      </text>
+                    </g>
+                  </svg>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                  <span className="text-xs text-slate-400 font-semibold">{t("ညွှန်ကြားချက် -", "Tip:")}</span>
+                  <p className="text-xs text-slate-400">
+                    {t("ဂူဂယ်ပုံစံ ဘုရားကျောင်း၏ အစိတ်အပိုင်းတစ်ခုချင်းစီကို တိုက်ရိုက်နှိပ်ပြီး နေရာချထားနိုင်သလို အောက်က ခလုတ်များကိုလည်း သုံးနိုင်သည်။", "You can tap parts directly on the visual temple diagram above, or use the buttons below.")}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right Grid: Active Quest Card and controls */}
+              <div className="lg:col-span-5 flex flex-col justify-between h-full space-y-6">
+                
+                {/* Score Summary if Game Completed */}
+                {gameCompleted ? (
+                  <div className="bg-slate-900 border-2 border-amber-500 p-8 rounded-3xl text-center space-y-6 animate-pulse shadow-2xl">
+                    <div className="mx-auto bg-amber-500/10 text-amber-400 p-4 rounded-full w-20 h-20 flex items-center justify-center border border-amber-500/30">
+                      <Award className="w-10 h-10" />
+                    </div>
+                    <div>
+                      <h3 className="text-3xl font-black text-white">{t("ဂုဏ်ယူပါတယ်!", "Temple Built Successfully!")}</h3>
+                      <p className="text-sm text-slate-400 mt-2">
+                        {t(
+                          "ဂရိဘုရားကျောင်းတော်ကြီးကို အောင်မြင်စွာ တည်ဆောက်ပြီးဆုံးပါပြီ။ အပြည်ပြည်ဆိုင်ရာ လူ့အခွင့်အရေး အခွင့်အရေးများကို စနစ်တကျ ခွဲခြားသိမြင်နိုင်ခဲ့ပါပြီ။",
+                          "You have correctly classified all sample UDHR articles into René Cassin's Portico architecture!"
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                      <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">{t("စုစုပေါင်းရမှတ်", "Total Score Achieved")}</p>
+                      <p className="text-4xl font-black text-amber-400 mt-1">{score} Pts</p>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <button
+                        onClick={initTempleGame}
+                        className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold py-3.5 rounded-xl transition-all shadow-lg"
+                      >
+                        {t("ပြန်လည်ကစားမည်", "Rebuild with New Set")}
+                      </button>
+                      <button
+                        onClick={() => {
+                          restartQuiz();
+                          setActiveTab('quiz');
+                        }}
+                        className="w-full bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold py-3.5 rounded-xl transition-all"
+                      >
+                        {t("သမိုင်း Trivia Quiz စိန်ခေါ်မည်", "Play History Trivia Quiz")}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Active Article Deck Card */
+                  <div className="flex-grow flex flex-col justify-between bg-slate-900 border border-slate-800/80 p-6 md:p-8 rounded-3xl shadow-xl relative overflow-hidden">
+                    
+                    {/* Corner gradient lights */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                    {/* Progress details */}
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+                        {t("မေးခွန်းကတ်ပြား", "Active Question Deck")}
+                      </span>
+                      <span className="text-amber-400 text-xs font-semibold flex items-center space-x-1">
+                        <span className="w-2 h-2 bg-amber-500 rounded-full animate-ping inline-block mr-1" />
+                        {t("ရွေးချယ်ရန် စောင့်ဆိုင်းနေသည်", "Awaiting Placement")}
+                      </span>
+                    </div>
+
+                    {/* Main Article Question description */}
+                    <div className="space-y-4 my-auto min-h-[140px]">
+                      <span className="text-amber-500 font-bold text-sm">
+                        {shuffledGamePool[currentArticleIndex] ? `Article ID: #${shuffledGamePool[currentArticleIndex].id}` : ""}
+                      </span>
+                      <h3 className="text-xl md:text-2xl font-black text-white leading-tight">
+                        {shuffledGamePool[currentArticleIndex] && t(shuffledGamePool[currentArticleIndex].titleMM, shuffledGamePool[currentArticleIndex].titleEN)}
+                      </h3>
+                      <p className="text-slate-300 text-sm md:text-base leading-relaxed bg-slate-950/40 p-4 rounded-xl border border-slate-800/40">
+                        {shuffledGamePool[currentArticleIndex] && t(shuffledGamePool[currentArticleIndex].descMM, shuffledGamePool[currentArticleIndex].descEN)}
+                      </p>
+                    </div>
+
+                    {/* Placement Selection Buttons */}
+                    <div className="space-y-4 mt-6">
+                      <p className="text-xs text-slate-400 text-center font-semibold tracking-wider uppercase">
+                        {t("ဤအပိုဒ်သည် ဘုရားကျောင်း၏ မည်သည့်နေရာတွင် တည်ရှိသနည်း။", "Where does this article fit in the Greek Temple?")}
+                      </p>
+                      
+                      {/* Grid buttons to select mapping category */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => handleTemplePlacement('Foundation')}
+                          className="bg-slate-950 border border-slate-800 hover:border-amber-500/80 hover:bg-amber-500/5 text-xs font-semibold py-3 px-2 rounded-xl text-amber-300 transition-all text-center flex items-center justify-center"
+                        >
+                          {t("အခြေခံအုတ်မြစ် (Art 1-2)", "Foundation (Art 1-2)")}
+                        </button>
+                        <button
+                          onClick={() => handleTemplePlacement('Column 1')}
+                          className="bg-slate-950 border border-slate-800 hover:border-emerald-500/80 hover:bg-emerald-500/5 text-xs font-semibold py-3 px-2 rounded-xl text-emerald-300 transition-all text-center flex items-center justify-center"
+                        >
+                          {t("တိုင်လုံး ၁ - တစ်ဦးချင်း (Art 3-11)", "Column 1 - Individual")}
+                        </button>
+                        <button
+                          onClick={() => handleTemplePlacement('Column 2')}
+                          className="bg-slate-950 border border-slate-800 hover:border-blue-500/80 hover:bg-blue-500/5 text-xs font-semibold py-3 px-2 rounded-xl text-blue-300 transition-all text-center flex items-center justify-center"
+                        >
+                          {t("တိုင်လုံး ၂ - လူမှုအဖွဲ့ (Art 12-17)", "Column 2 - Civil")}
+                        </button>
+                        <button
+                          onClick={() => handleTemplePlacement('Column 3')}
+                          className="bg-slate-950 border border-slate-800 hover:border-indigo-500/80 hover:bg-indigo-500/5 text-xs font-semibold py-3 px-2 rounded-xl text-indigo-300 transition-all text-center flex items-center justify-center"
+                        >
+                          {t("တိုင်လုံး ၃ - နိုင်ငံရေး (Art 18-21)", "Column 3 - Political")}
+                        </button>
+                        <button
+                          onClick={() => handleTemplePlacement('Column 4')}
+                          className="bg-slate-950 border border-slate-800 hover:border-purple-500/80 hover:bg-purple-500/5 text-xs font-semibold py-3 px-2 rounded-xl text-purple-300 transition-all text-center flex items-center justify-center"
+                        >
+                          {t("တိုင်လုံး ၄ - စီးပွားရေး (Art 22-27)", "Column 4 - Socio-Econ")}
+                        </button>
+                        <button
+                          onClick={() => handleTemplePlacement('Pediment')}
+                          className="bg-slate-950 border border-slate-800 hover:border-rose-500/80 hover:bg-rose-500/5 text-xs font-semibold py-3 px-2 rounded-xl text-rose-300 transition-all text-center flex items-center justify-center"
+                        >
+                          {t("အမိုးအကာ (Art 28-30)", "Pediment Roof (28-30)")}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Popover feedback notification after answer interaction */}
+                    {showFeedback && (
+                      <div className={`absolute inset-0 p-6 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300 ${
+                        showFeedback.isCorrect ? 'bg-slate-950/95 border-2 border-emerald-500/50' : 'bg-slate-950/95 border-2 border-rose-500/50'
+                      }`}>
+                        <div className={`p-4 rounded-full mb-4 ${
+                          showFeedback.isCorrect ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                        }`}>
+                          {showFeedback.isCorrect ? <CheckCircle2 className="h-12 w-12 stroke-[2.5]" /> : <AlertCircle className="h-12 w-12 stroke-[2.5]" />}
+                        </div>
+                        <h3 className={`text-2xl font-black mb-2 ${showFeedback.isCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {showFeedback.isCorrect ? t("မှန်ကန်ပါတယ်!", "Well Done!") : t("မှားယွင်းနေပါတယ်", "Incorrect Answer")}
+                        </h3>
+                        <p className="text-slate-200 text-sm md:text-base leading-relaxed max-w-sm">
+                          {t(showFeedback.msgMM, showFeedback.msgEN)}
+                        </p>
+                        <p className="text-slate-500 text-xs mt-6 animate-pulse">
+                          {t("နောက်ကတ်ပြားတစ်ခုသို့ အလိုအလျောက်ရွေ့လျားနေသည်...", "Moving onto the next card shortly...")}
+                        </p>
+                      </div>
+                    )}
+
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* ==================== SCREEN 4: TRIVIA QUIZ MODE ==================== */}
+        {activeTab === 'quiz' && (
+          <div className="max-w-3xl mx-auto space-y-6 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <button 
+                  onClick={() => setActiveTab('home')} 
+                  className="text-slate-400 hover:text-white flex items-center space-x-1 mb-2 text-sm"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>{t("ပင်မစာမျက်နှာ", "Back to Home")}</span>
+                </button>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+                  <Trophy className="text-amber-400 h-8 w-8" />
+                  <span>{t("UDHR သမိုင်းကြောင်းဆိုင်ရာ Trivia Quiz", "UDHR Historical Trivia Quiz")}</span>
+                </h2>
+              </div>
+            </div>
+
+            {/* Quiz Results Screen */}
+            {quizFinished ? (
+              <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl text-center space-y-6 shadow-2xl">
+                <div className="mx-auto bg-amber-500/10 text-amber-400 p-4 rounded-full w-20 h-20 flex items-center justify-center border border-amber-500/20">
+                  <Award className="w-12 h-12" />
+                </div>
+                <div>
+                  <h3 className="text-2xl md:text-3xl font-black text-white">{t("ဉာဏ်စမ်းဂိမ်း ပြီးဆုံးပါပြီ!", "Trivia Quiz Finished!")}</h3>
+                  <p className="text-sm text-slate-400 mt-2">
+                    {t(
+                      "အမေရိကန်သမ္မတ Roosevelt ၏ လွတ်လပ်မှု ၄ ရပ်၊ Eleanor Roosevelt နှင့် UDHR သမိုင်းဝင်အချက်အလက်များကို ဖြေဆိုပြီးပါပြီ။",
+                      "You have processed all historical inquiries on human rights progression in the 20th century."
+                    )}
+                  </p>
+                </div>
+
+                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 max-w-xs mx-auto">
+                  <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">{t("ဉာဏ်စမ်းစုစုပေါင်းရမှတ်", "Quiz Success Score")}</p>
+                  <p className="text-4xl font-black text-amber-400 mt-2">{quizScore} / 100</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <button
+                    onClick={restartQuiz}
+                    className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold px-8 py-3.5 rounded-xl transition-all shadow-lg"
+                  >
+                    {t("ပြန်လည်ဖြေဆိုမည်", "Restart Quiz Challenge")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      initTempleGame();
+                      setActiveTab('build');
+                    }}
+                    className="w-full sm:w-auto bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold px-8 py-3.5 rounded-xl transition-all"
+                  >
+                    {t("ဘုရားကျောင်းဂိမ်း ကစားမည်", "Switch to Temple Builder")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Active Question Card and Selection */
+              <div className="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-3xl space-y-6 shadow-xl">
+                
+                {/* Question Info indicator header */}
+                <div className="flex items-center justify-between border-b border-slate-800/60 pb-3">
+                  <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                    {t(`မေးခွန်း ${currentQuizIdx + 1} / ${TRIVIA_QUESTIONS.length}`, `QUESTION ${currentQuizIdx + 1} OF ${TRIVIA_QUESTIONS.length}`)}
+                  </span>
+                  <span className="text-xs text-amber-400 font-bold">
+                    {t(`ရမှတ်: ${quizScore}`, `Current Score: ${quizScore}`)}
+                  </span>
+                </div>
+
+                {/* Question Text */}
+                <h3 className="text-lg md:text-xl font-bold text-white leading-relaxed">
+                  {t(TRIVIA_QUESTIONS[currentQuizIdx].questionMM, TRIVIA_QUESTIONS[currentQuizIdx].questionEN)}
+                </h3>
+
+                {/* Question Options */}
+                <div className="space-y-3">
+                  {TRIVIA_QUESTIONS[currentQuizIdx].options.map((option, idx) => {
+                    let optionStyle = "border-slate-800 bg-slate-950 hover:bg-slate-800 hover:border-slate-700";
+                    let checkIcon = null;
+
+                    if (selectedOption) {
+                      if (option.isCorrect) {
+                        optionStyle = "border-emerald-500/50 bg-emerald-500/10 text-emerald-200";
+                        checkIcon = <Check className="h-5 w-5 text-emerald-400 inline mr-2" />;
+                      } else if (selectedOption === option) {
+                        optionStyle = "border-rose-500/50 bg-rose-500/10 text-rose-200";
+                        checkIcon = <X className="h-5 w-5 text-rose-400 inline mr-2" />;
+                      } else {
+                        optionStyle = "border-slate-800/40 opacity-50 bg-slate-950/40 text-slate-500";
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleQuizAnswer(option)}
+                        disabled={!!selectedOption}
+                        className={`w-full text-left p-4 rounded-xl border font-semibold text-sm md:text-base flex items-center justify-between transition-all ${optionStyle}`}
+                      >
+                        <span>
+                          {checkIcon}
+                          {t(option.textMM, option.textEN)}
+                        </span>
+                        <span className="text-xs text-slate-500 font-bold">Option {idx + 1}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Quiz Answers Explanation display panel */}
+                {showQuizExplanation && (
+                  <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl space-y-4 animate-slideIn">
+                    <div className="flex items-center space-x-2 text-amber-400">
+                      <HelpCircle className="h-5 w-5" />
+                      <span className="font-bold text-sm uppercase tracking-wider">{t("သမိုင်းနောက်ခံ ရှင်းလင်းချက်", "Historical Background")}</span>
+                    </div>
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      {t(TRIVIA_QUESTIONS[currentQuizIdx].explanationMM, TRIVIA_QUESTIONS[currentQuizIdx].explanationEN)}
+                    </p>
+                    <button
+                      onClick={nextQuizQuestion}
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold py-3 rounded-xl transition-all text-center text-sm uppercase tracking-wider"
+                    >
+                      {currentQuizIdx < TRIVIA_QUESTIONS.length - 1 ? t("နောက်တစ်ကြိမ် ဖြေဆိုရန်", "Next Question") : t("ရလဒ်များကို ကြည့်မည်", "See Final Results")}
+                    </button>
+                  </div>
+                )}
+
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ==================== SCREEN 5: TEMPLE HISTORY CONCEPT ==================== */}
+        {activeTab === 'history' && (
+          <div className="max-w-4xl mx-auto space-y-8 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <button 
+                  onClick={() => setActiveTab('home')} 
+                  className="text-slate-400 hover:text-white flex items-center space-x-1 mb-2 text-sm"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>{t("ပင်မစာမျက်နှာ", "Back to Home")}</span>
+                </button>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+                  <History className="text-amber-400 h-8 w-8" />
+                  <span>{t("René Cassin ၏ ဂရိဘုရားကျောင်း တင်စားချက်", "René Cassin's Greek Temple Analogy")}</span>
+                </h2>
+              </div>
+            </div>
+
+            {/* Main historical article layout */}
+            <div className="bg-slate-900 border border-slate-800 p-6 md:p-10 rounded-3xl space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-xl md:text-2xl font-black text-amber-300">
+                  {t("ဘာကြောင့် ဂရိဘုရားကျောင်း (Portico of a Greek Temple) ဖြစ်ရတာလဲ။", "The Architect of Human Dignity")}
+                </h3>
+                <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                  {t(
+                    "နိုဘယ်လ်ငြိမ်းချမ်းရေးဆုရ ပြင်သစ်ဥပဒေပညာရှင် ရနေး ကက်စင် (René Cassin) သည် အပြည်ပြည်ဆိုင်ရာ လူ့အခွင့်အရေး ကြေညာစာတမ်း (UDHR) ကို အလွန်အင်မတန် ခိုင်ခံ့သော၊ စနစ်တကျ ရေးဆွဲထားသော ဂရိဘုရားကျောင်းပုံစံ တည်ဆောက်မှုအဖြစ် ပုံဖော်နှိုင်းယှဉ်ခဲ့သည်။ ၎င်းသည် လူသားတို့၏ ဂုဏ်သိက္ခာနှင့် အခွင့်အရေးများကို အကြမ်းဖက်မှုနှင့် ဖိနှိပ်မှုများအောက်မှ အပြီးတိုင် ကာကွယ်ရန် တီထွင်ထားသော လမ်းညွှန်ဖြစ်သည်။",
+                    "French jurist and Nobel laureate René Cassin envisioned the Universal Declaration of Human Rights as an architectural masterpiece. He likened its structure to the portico of an ancient Greek temple, showing that human rights are not a random collection of articles but a structurally sound web where every part reinforces the other to shield human dignity."
+                  )}
+                </p>
+              </div>
+
+              {/* Graphic breakdown of the temple structure */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-2">
+                  <h4 className="font-bold text-amber-400 text-lg border-b border-slate-800 pb-2">
+                    {t("၁။ အခြေခံအုတ်မြစ် (The Foundations)", "1. The Foundations (Articles 1 & 2)")}
+                  </h4>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    {t(
+                      "အပိုဒ် ၁ နှင့် ၂ ဖြစ်သည်။ ၎င်းတို့သည် လူတိုင်း၏ ဂုဏ်သိက္ခာ၊ လွတ်လပ်ခွင့်၊ တန်းတူညီမျှခွင့်နှင့် ညီရင်းအစ်ကိုစိတ်ဓာတ်တို့ကို ထုတ်ဖော်ကြေညာသည်။ ကျန်ရှိသော တိုင်လုံးကြီးများနှင့် အမိုးတစ်ခုလုံးသည် ဤအုတ်မြစ်မရှိဘဲ မတည်ဆောက်နိုင်ပေ။",
+                      "These baseline values assert that all humans are born free and equal. They outline basic dignity, freedom, and brotherhood, forming the indispensable stone foundation for the entire construct."
+                    )}
+                  </p>
+                </div>
+
+                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-2">
+                  <h4 className="font-bold text-emerald-400 text-lg border-b border-slate-800 pb-2">
+                    {t("၂။ တိုင်လုံးကြီး ၄ ခု (The Four Columns)", "2. The Four Pillars (Articles 3 to 27)")}
+                  </h4>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    {t(
+                      "တိုင်လုံးများသည် အခွင့်အရေး အမျိုးအစားအုပ်စုများကို ခွဲခြားပေးထားသည်။ ပထမတိုင်လုံးသည် တစ်ဦးချင်းအခွင့်အရေးများ (အပိုဒ် ၃-၁၁)၊ ဒုတိယတိုင်လုံးသည် လူ့အဖွဲ့အစည်းတွင်း ပုဂ္ဂိုလ်ရေးဆိုင်ရာ အခွင့်အရေးများ (အပိုဒ် ၁၂-၁၇)၊ တတိယတိုင်လုံးသည် ဘာသာရေးနှင့် နိုင်ငံရေးလွတ်လပ်ခွင့်များ (အပိုဒ် ၁၈-၂၁) နှင့် စတုတ္ထတိုင်လုံးသည် လူမှုဖူလုံရေး၊ စီးပွားရေးနှင့် ယဉ်ကျေးမှုဆိုင်ရာ အခွင့်အရေးများ (အပိုဒ် ၂၂-၂၇) ကို မားမားမတ်မတ် ထောက်မထားသည်။",
+                      "The four columns represent grouped subsets of rights: Column 1 outlines personal liberties (3-11), Column 2 regulates rights within civil relationships (12-17), Column 3 preserves spiritual and political liberties (18-21), and Column 4 maintains social security and economic protection (22-27)."
+                    )}
+                  </p>
+                </div>
+
+                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-2 md:col-span-2">
+                  <h4 className="font-bold text-rose-400 text-lg border-b border-slate-800 pb-2">
+                    {t("၃။ တြိဂံအမိုးအကာ (The Pediment Roof)", "3. The Pediment Roof (Articles 28 to 30)")}
+                  </h4>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    {t(
+                      "အပိုဒ် ၂၈၊ ၂၉ နှင့် ၃၀ သည် ဘုရားကျောင်းကြီး၏ အထွတ်အထိပ် အမိုးအကာ ဖြစ်သည်။ ၎င်းတို့သည် အခွင့်အရေးများကို အမှန်တကယ် လက်တွေ့အကောင်အထည်ဖော်နိုင်မည့် နိုင်ငံတကာ စနစ်တစ်ခုနှင့် လူ့အဖွဲ့အစည်းအပေါ် ထားရှိရမည့် ဝတ္တရားများကို ဖော်ပြထားသည်။ ဤအမိုးသည် ဘုရားကျောင်း၏ အောက်ခြေတိုင်လုံးများနှင့် အခြေခံအုတ်မြစ်များကို ပြင်ပလေဒဏ်၊ မုန်တိုင်းဒဏ်မှ ဖုံးအုပ်ကာကွယ်ပေးထားသကဲ့သို့ ဖြစ်သည်။",
+                      "The triangular pediment crown connects the entire structure. It declares that rights must be enabled by a wider social and international order, accompanied by responsibilities to our communities. It protects the structural integrity of the columns underneath from decay."
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action and Navigation button footer */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                <button
+                  onClick={() => {
+                    initTempleGame();
+                    setActiveTab('build');
+                  }}
+                  className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold px-8 py-3.5 rounded-xl transition-all shadow-lg text-center"
+                >
+                  {t("ဂိမ်းကစားပြီး လက်တွေ့စမ်းသပ်မည်", "Test Your Knowledge in Game")}
+                </button>
+                <button
+                  onClick={() => setActiveTab('learn')}
+                  className="bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold px-8 py-3.5 rounded-xl transition-all text-center"
+                >
+                  {t("အပိုဒ် ၃၀ အသေးစိတ်ကြည့်ရန်", "View Categorized Articles")}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* Elegant Sticky footer with educational reference */}
+      <footer className="bg-slate-950 border-t border-slate-900 py-6 px-4 md:px-8 text-center text-slate-500 text-xs space-y-2">
+        <p>
+          {t("အပြည်ပြည်ဆိုင်ရာ လူ့အခွင့်အရေး ကြေညာစာတမ်း (UDHR) ဂရိဘုရားကျောင်း ဂိမ်း @ ၂၀၂၆", "UDHR Greek Temple Interactive Concept Game © 2026")}
+        </p>
+        <p className="max-w-2xl mx-auto opacity-75">
+          {t(
+            "၁၉၄၈ ခုနှစ်၊ ဒီဇင်ဘာ ၁၀ ရက်တွင် ပဲရစ်မြို့၌ ကုလသမဂ္ဂ အထွေထွေညီလာခံမှ အတည်ပြုခဲ့သော ကမ္ဘာ့သမိုင်းဝင် စာရွက်စာတမ်းဖြစ်ပြီး ဘာသာစကား ၅၀၀ ကျော်သို့ ပြန်ဆိုထားသည်။",
+            "Adapted from the historical analogy proposed by René Cassin. Universal Declaration of Human Rights was adopted by the United Nations on December 10, 1948 in Paris, France."
+          )}
+        </p>
+      </footer>
+
+    </div>
+  );
+}
